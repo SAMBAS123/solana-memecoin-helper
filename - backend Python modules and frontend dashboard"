@@ -1,0 +1,16 @@
+[33mcommit 75c6e1f2272ca7f06428937b19f9b0e14935b2e9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: Sam Lemay <sam.long.lemay@gmail.com>
+Date:   Thu Aug 14 21:35:43 2025 -0400
+
+    Initial commit: Solana Memecoin Helper - Full-featured memecoin analysis tool with holder scanning, liquidity monitoring, and Telegram integration
+
+.gitignore
+README.md
+backend/app.py
+backend/bundle_checker.py
+backend/evolve_rules.py
+backend/holder_scanner.py
+backend/liquidity_alert.py
+backend/notify.py
+frontend/dashboard.html
+requirements.txt
