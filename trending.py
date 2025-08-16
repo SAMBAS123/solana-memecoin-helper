@@ -11,7 +11,6 @@ API_TIMEOUT = float(os.getenv("API_TIMEOUT", 5))
 cache = TTLCache(maxsize=100, ttl=300)
 
 def get_trending_coins(limit=10):
-    """Gets trending Solana coins from GMGN API, cached."""
     key = ('trending_coins', limit)
     if key in cache:
         return cache[key]

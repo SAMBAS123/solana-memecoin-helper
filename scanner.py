@@ -43,12 +43,12 @@ def quick_scan(token, mc_threshold=10000):
     gmgn = f_gmgn.result()
     holders = f_holders.result()
     liq = f_liq.result()
-    liq_history = [1000, 950, 900]  # Mock; replace with real from liq_ta history
+    liq_history = [1000, 950, 900]  # Mock
     holder_pcts = [h.get('percentage', 0) for h in holders.get('data', [])] if isinstance(holders, dict) else []
     with ThreadPoolExecutor() as executor:
         f_rug = executor.submit(predict_rug, liq_history, holder_pcts)
     rug = f_rug.result()
-    # Aggregate risk_score (0-100): e.g., impact*5 + max(holder_pct) + abs(liq_change)*2 + (100 if rug == "High rug risk" else 0) / 4
+    # Aggregate risk_score (0-100)
     impact = gmgn.get('impact', 0) if isinstance(gmgn, dict) else 0
     liq_change = liq.get('change_5m', 0) if isinstance(liq, dict) else 0
     max_pct = max(holder_pcts) if holder_pcts else 0

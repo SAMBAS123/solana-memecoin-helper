@@ -1,11 +1,10 @@
 import csv
-import os
 import time
+import os
 
 LOG_FILE = 'scan_logs.csv'
 
 def log_hit(token, scan_result):
-    """Logs scan results to CSV for backtesting/learning."""
     if not os.path.exists(LOG_FILE):
         with open(LOG_FILE, 'w', newline='') as f:
             writer = csv.writer(f)

@@ -7,6 +7,7 @@ import os
 from scanner import fast_memecoin_scan, quick_scan
 from trending import get_trending_coins
 from log import log_hit
+from notify import send_alert
 
 load_dotenv()
 
