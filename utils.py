@@ -32,7 +32,7 @@ def get_swap_route(input_token='So11111111111111111111111111111111111111112', ou
             "bundle_ratio": bundle_ratio,
             "price_impact": price_impact,
             "alpha": alpha,
-            "raw_tx": data['raw_tx']['swapTransaction']
+            "raw_tx": data['raw_tx']['swapTransaction'] if 'raw_tx' in data else None
         }
         cache[key] = result
         return result

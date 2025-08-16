@@ -35,18 +35,13 @@ def liq_ta(token):
     # TODO: Implement actual TA using API data and scipy
     return {"peaks": []}  # Placeholder
 
-def quick_scan(token, mc_threshold=None):
-    """Fast scan with parallel holder/bundle/liq using concurrent.futures."""
-    if mc_threshold is None:
-        mc_threshold = int(os.getenv("MC_THRESHOLD", 10000))
+def quick_scan(token, mc_threshold=10000):
+    """Fast scan integration (parallel with holders/liq)."""
     with ThreadPoolExecutor() as executor:
+        future_gmgn = executor.submit(get_swap_route, token)
         future_holders = executor.submit(scan_holders, token)
-        future_bundle = executor.submit(get_bundle_info, token)
         future_liq = executor.submit(liq_ta, token)
-    holders = future_holders.result()
-    bundle = future_bundle.result()
-    liq = future_liq.result()
-    if isinstance(bundle, dict) and 'error' not in bundle:
-        if bundle.get('bundle_ratio', 0) > 1 and mc_threshold < int(os.getenv("MC_LOW_THRESHOLD", 20000)):
-            send_alert(f"Risky bundle >1:1 for {token} – Skip!")
-    return {"holders": holders, "bundle": bundle, "liq": liq}
+    gmgn = future_gmgn.result()
+    if gmgn.get('bundle_ratio', 0) > 1 and mc_threshold < 20000:
+        send_alert(f"Risky bundle >1:1 for {token} – Skip!")
+    return {"gmgn": gmgn, "holders": future_holders.result(), "liq_alpha": future_liq.result()}
