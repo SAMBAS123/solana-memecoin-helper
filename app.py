@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from dotenv import load_dotenv
 
-from scanner import fast_memecoin_scan
+from scanner import fast_memecoin_scan, quick_scan
 
 load_dotenv()
 
