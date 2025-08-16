@@ -43,12 +43,17 @@ def quick_scan(token, mc_threshold=10000):
     gmgn = f_gmgn.result()
     holders = f_holders.result()
     liq = f_liq.result()
-    # Integrate rug prediction (using liq history mock and holder pcts)
     liq_history = [1000, 950, 900]  # Mock; replace with real from liq_ta history
     holder_pcts = [h.get('percentage', 0) for h in holders.get('data', [])] if isinstance(holders, dict) else []
     with ThreadPoolExecutor() as executor:
         f_rug = executor.submit(predict_rug, liq_history, holder_pcts)
     rug = f_rug.result()
+    # Aggregate risk_score (0-100): e.g., impact*5 + max(holder_pct) + abs(liq_change)*2 + (100 if rug == "High rug risk" else 0) / 4
+    impact = gmgn.get('impact', 0) if isinstance(gmgn, dict) else 0
+    liq_change = liq.get('change_5m', 0) if isinstance(liq, dict) else 0
+    max_pct = max(holder_pcts) if holder_pcts else 0
+    rug_score = 100 if rug == "High rug risk" else 0
+    risk_score = min(100, (impact * 5 + max_pct + abs(liq_change) * 2 + rug_score) / 4)
     if gmgn.get('bundle_ratio', 0) > 1 and mc_threshold < 20000:
         send_alert(f"Risky bundle >1:1 for {token}")
-    return {"gmgn": gmgn, "holders": holders, "liq": liq, "rug": rug}
+    return {"gmgn": gmgn, "holders": holders, "liq": liq, "rug": rug, "risk_score": risk_score}
