@@ -11,7 +11,7 @@ API_TIMEOUT = float(os.getenv("API_TIMEOUT", 5))
 cache = TTLCache(maxsize=100, ttl=300)  # 5 min TTL
 
 def get_swap_route(input_token='So11111111111111111111111111111111111111112', output_token=None, amount_lamports=100000000, from_address=None, slippage=0.5, anti_mev=True):
-    """Gets swap route from GMGN API, with caching and error handling."""
+    """Query route for liq/bundle inference; flag risks for <10k MC coins."""
     if from_address is None:
         from_address = os.getenv("WALLET_ADDRESS")
     key = ('swap_route', input_token, output_token, amount_lamports, from_address, slippage, anti_mev)
@@ -23,11 +23,16 @@ def get_swap_route(input_token='So11111111111111111111111111111111111111112', ou
     try:
         response = requests.get(url, timeout=API_TIMEOUT)
         response.raise_for_status()
-        data = response.json()
+        data = response.json()['data']
+        route_plan = data['quote']['routePlan']
+        bundle_ratio = len(route_plan) / (data.get('tx_count', 1) or 1)
+        price_impact = float(data['quote']['priceImpact']) if data['quote']['priceImpact'] is not None else 0
+        alpha = "Dump risk" if price_impact > 10 else "Stable liq – watch support"
         result = {
-            "price_impact": data.get("priceImpact", 0),
-            "bundle_ratio": len(data.get("routePlan", [])) / data.get("tx_count", 1) if 'tx_count' in data else 1,
-            "liq_alpha": "Buy signal" if data.get("priceImpact") < 5 else "Dump risk"
+            "bundle_ratio": bundle_ratio,
+            "price_impact": price_impact,
+            "alpha": alpha,
+            "raw_tx": data['raw_tx']['swapTransaction']
         }
         cache[key] = result
         return result

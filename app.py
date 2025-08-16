@@ -12,5 +12,10 @@ def fast_scan(token):
     result = fast_memecoin_scan(token)
     return jsonify(result)
 
+@app.route('/quickscan/<token>')
+def quickscan(token):
+    result = quick_scan(token)
+    return jsonify(result)
+
 if __name__ == '__main__':
     app.run(debug=True)
