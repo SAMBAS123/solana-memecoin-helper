@@ -3,12 +3,14 @@ import logging
 from telegram.ext import ApplicationBuilder, CommandHandler
 from scanner import quick_scan  # Reuse existing scan
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
 
 def start(update, context):
+    logging.debug("Received /start command")
     update.message.reply_text("Hi! Use /quickscan <token> to scan a memecoin.")
 
 def quickscan(update, context):
+    logging.debug("Received /quickscan command")
     if not context.args:
         update.message.reply_text("Please provide a token address, e.g., /quickscan DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263")
         return
@@ -26,4 +28,5 @@ if __name__ == '__main__':
         app = ApplicationBuilder().token(token).build()
         app.add_handler(CommandHandler("start", start))
         app.add_handler(CommandHandler("quickscan", quickscan))
+        logging.debug("Starting bot polling")
         app.run_polling()
