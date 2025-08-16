@@ -41,6 +41,14 @@ def quick_scan(token, mc_threshold=10000):
         f_holders = executor.submit(scan_holders, token)
         f_liq = executor.submit(liq_ta, token)
     gmgn = f_gmgn.result()
+    holders = f_holders.result()
+    liq = f_liq.result()
+    # Integrate rug prediction (using liq history mock and holder pcts)
+    liq_history = [1000, 950, 900]  # Mock; replace with real from liq_ta history
+    holder_pcts = [h.get('percentage', 0) for h in holders.get('data', [])] if isinstance(holders, dict) else []
+    with ThreadPoolExecutor() as executor:
+        f_rug = executor.submit(predict_rug, liq_history, holder_pcts)
+    rug = f_rug.result()
     if gmgn.get('bundle_ratio', 0) > 1 and mc_threshold < 20000:
         send_alert(f"Risky bundle >1:1 for {token}")
-    return {"gmgn": gmgn, "holders": f_holders.result(), "liq": f_liq.result()}
+    return {"gmgn": gmgn, "holders": holders, "liq": liq, "rug": rug}
