@@ -39,6 +39,28 @@ def get_swap_route(input_token='So11111111111111111111111111111111111111112', ou
     except Exception as e:
         return {"error": str(e)}
 
+def get_gmgn_route(token, amount=100000000, slippage=0.5, anti_mev=True, wallet=None):
+    """Query route for liq/bundle inference; flag risks for <10k MC coins."""
+    if wallet is None:
+        wallet = os.getenv("WALLET_ADDRESS")
+    key = ('gmgn_route', token, amount, slippage, anti_mev, wallet)
+    if key in cache:
+        return cache[key]
+    url = f"{GMGN_API_HOST}/get_swap_route?token_in_address=So11111111111111111111111111111111111111112&token_out_address={token}&in_amount={amount}&from_address={wallet}&slippage={slippage}"
+    if anti_mev:
+        url += "&is_anti_mev=true&fee=0.002"
+    try:
+        resp = requests.get(url, timeout=API_TIMEOUT)
+        resp.raise_for_status()
+        data = resp.json()['data']['quote']
+        bundle_ratio = len(data['routePlan']) / (data.get('tx_count', 1) or 1)
+        impact = float(data['priceImpact'])
+        result = {"bundle_ratio": bundle_ratio, "impact": impact, "alpha": "Dump risk" if impact > 10 else "Stable"}
+        cache[key] = result
+        return result
+    except Exception as e:
+        return {"error": str(e)}
+
 def get_holders(token):
     """Gets holders list from GMGN API, with caching."""
     key = ('holders', token)

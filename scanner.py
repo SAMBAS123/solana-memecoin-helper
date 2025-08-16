@@ -36,12 +36,11 @@ def liq_ta(token):
     return {"peaks": []}  # Placeholder
 
 def quick_scan(token, mc_threshold=10000):
-    """Fast scan integration (parallel with holders/liq)."""
     with ThreadPoolExecutor() as executor:
-        future_gmgn = executor.submit(get_swap_route, token)
-        future_holders = executor.submit(scan_holders, token)
-        future_liq = executor.submit(liq_ta, token)
-    gmgn = future_gmgn.result()
+        f_gmgn = executor.submit(get_gmgn_route, token)
+        f_holders = executor.submit(scan_holders, token)
+        f_liq = executor.submit(liq_ta, token)
+    gmgn = f_gmgn.result()
     if gmgn.get('bundle_ratio', 0) > 1 and mc_threshold < 20000:
-        send_alert(f"Risky bundle >1:1 for {token} – Skip!")
-    return {"gmgn": gmgn, "holders": future_holders.result(), "liq_alpha": future_liq.result()}
+        send_alert(f"Risky bundle >1:1 for {token}")
+    return {"gmgn": gmgn, "holders": f_holders.result(), "liq": f_liq.result()}

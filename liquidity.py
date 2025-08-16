@@ -2,6 +2,8 @@ import requests
 from dotenv import load_dotenv
 import os
 from cachetools import TTLCache
+import numpy as np
+from scipy.signal import find_peaks
 
 load_dotenv()
 
@@ -30,9 +32,10 @@ def get_liquidity(token):
         return {"error": str(e)}
 
 def liq_ta(token):
-    """Liquidity technical analysis with change detection."""
-    liq = get_liquidity(token)
-    if 'error' in liq:
-        return liq
-    alpha = "Dump risk" if liq["liquidity_change_5m"] < -10 else "Stable liq"
-    return {"liquidity_usd": liq["liquidity_usd"], "change_5m": liq["liquidity_change_5m"], "alpha": alpha}
+    """Liquidity TA with scipy peaks on mocked history."""
+    ohlc = [get_liquidity(token) for _ in range(10)]  # Mock 10 intervals
+    liq_levels = np.array([d["liquidity_usd"] if 'liquidity_usd' in d else 0 for d in ohlc])
+    resistance, _ = find_peaks(liq_levels, distance=3)
+    support, _ = find_peaks(-liq_levels, distance=3)
+    alpha = "Buy on support hold" if support.size else "Watch resistance break"
+    return {"support": liq_levels[support].mean() if support.size else 0, "resistance": liq_levels[resistance].mean() if resistance.size else 0, "alpha": alpha}
