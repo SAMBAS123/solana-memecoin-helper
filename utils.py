@@ -53,9 +53,9 @@ def get_gmgn_route(token, amount=100000000, slippage=0.5, anti_mev=True, wallet=
         resp = requests.get(url, timeout=API_TIMEOUT)
         resp.raise_for_status()
         data = resp.json()['data']['quote']
-        bundle_ratio = len(data['routePlan']) / (data.get('tx_count', 1) or 1)
-        impact = float(data['priceImpact'])
-        result = {"bundle_ratio": bundle_ratio, "impact": impact, "alpha": "Dump risk" if impact > 10 else "Stable"}
+        bundle_ratio = len(data['routePlan'])  # Simplified flag (docs show routePlan for MEV paths)
+        impact = float(data['priceImpactPct'])
+        result = {"bundle_ratio": bundle_ratio, "impact": impact, "alpha": "Dump risk – high impact" if impact > 10 else "Stable liq – potential buy"}
         cache[key] = result
         return result
     except Exception as e:
